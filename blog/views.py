@@ -1,7 +1,9 @@
 # blog/views.py
 from django.views.generic import ListView, DetailView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView  # new
+from django.urls import reverse_lazy  # new
+
 from .models import Post
-from django.urls import reverse
 
 
 class BlogListView(ListView):
@@ -13,24 +15,21 @@ class BlogDetailView(DetailView):
     model = Post
     template_name = "post_detail.html"
 
-    def test_url_exists_at_correct_location_listview(self):
-        response = self.client.get("/")
-        self.assertEqual(response.status.code, 200)
 
-    def test_url_exists_at_correct_location_detailview(self):
-        response = self.client.get("/post/1")
-        self.assertEqual(response.status.code, 200)
+class BlogCreateView(CreateView):
+    model = Post
+    template_name = "post_new.html"
+    fields = ["title", "author", "body"]
 
-    def test_post_listview(self):
-        response = self.client.get(reverse("home"))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Nice body content")
-        self.assertTemplateUsed(response, "home.html")
 
-    def test_post_detailview(self):
-        response = self.client.get(reverse("post_detail", kwargs={"pk": self.post.pk}))
-        no_response = self.client.get("/post/10000/")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(no_response.status_code, 404)
-        self.assertContains(response, "A good title")
-        self.assertTemplateUsed(response, "post_detail.html")
+class BlogUpdateView(UpdateView):
+    model = Post
+    template_name = "post_edit.html"
+    fields = ["title", "body"]
+    success_url = reverse_lazy("post_new")
+
+
+class BlogDeleteView(DeleteView):  # new
+    model = Post
+    template_name = "post_delete.html"
+    success_url = reverse_lazy("home")
